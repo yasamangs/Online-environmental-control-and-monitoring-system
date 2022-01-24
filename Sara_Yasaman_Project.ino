@@ -1,5 +1,6 @@
 
 #include <ESP8266WiFi.h>
+#include <FirebaseArduino.h>
 #include <ArduinoJson.h>
 #include <ESP8266HTTPClient.h>
 #include "DHT.h"
@@ -10,7 +11,8 @@
 const char* ssid = "sample"; //--> Your wifi name or SSID.
 const char* password = "sample"; //--> Your wifi password.
 //----------------------------------------
-
+#define FIREBASE_HOST "sara-yasaman-project-default-rtdb.firebaseio.com" //--> URL address of our Firebase Realtime Database.
+#define FIREBASE_AUTH "AtGr1OHRlHJaE1j34hCMdSiVr7IiJIpZBRXbEEwW" //--> Our firebase database secret code.
 #define ON_Board_LED 2  //--> Defining an On Board LED, used for indicators when the process of connecting to a wifi router
 
 #define LED_D8 15 //--> Defines an LED Pin. D8 = GPIO15
@@ -45,7 +47,47 @@ void setup() {
 
   dht.begin();  //--> Start reading DHT11 sensors
   delay(500);
-=
+WiFi.begin(ssid, password); //--> Connect to your WiFi router
+  Serial.println("");
+    
+  pinMode(ON_Board_LED,OUTPUT); //--> On Board LED port Direction output
+  digitalWrite(ON_Board_LED, HIGH); //--> Turn off Led On Board
+
+  pinMode(LED_D8,OUTPUT); //--> LED port Direction output
+  digitalWrite(LED_D8, LOW); //--> Turn off Led
+
+  //----------------------------------------Wait for connection
+  Serial.print("Connecting");
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    //----------------------------------------Make the On Board Flashing LED on the process of connecting to the wifi router.
+    digitalWrite(ON_Board_LED, LOW);
+    delay(250);
+    digitalWrite(ON_Board_LED, HIGH);
+    delay(250);
+    //----------------------------------------
+  }
+  //----------------------------------------
+  digitalWrite(ON_Board_LED, HIGH); //--> Turn off the On Board LED when it is connected to the wifi router.
+  //----------------------------------------If successfully connected to the wifi router, the IP Address that will be visited is displayed in the serial monitor
+  Serial.println("");
+  Serial.print("Successfully connected to : ");
+  Serial.println(ssid);
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+  Serial.println();
+  //----------------------------------------
+
+  //----------------------------------------Firebase Configuration.
+  Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
+  //----------------------------------------
+  
+  //----------------------------------------Initialize a NTPClient to get time
+  timeClient.begin();
+  timeClient.setTimeOffset(utcOffsetInSeconds);
+  //----------------------------------------
+  delay(1000);
+}
 void loop() {
   // put your main code here, to run repeatedly:
   unsigned long currentMillis = millis();
@@ -86,7 +128,18 @@ void loop() {
       String currentTime = timeClient.getFormattedTime();
       Serial.print("  Current Time: ");
       Serial.println(currentTime);  
-
+      //----------------------------------------Send Time Data to the Firebase Realtime Database.
+      Firebase.setString("InternetEngineeringProject/Time",currentTime); //--> Command or code for sending Time Data in the form of a String data type to the Firebase Realtime Database.
+      // Conditions for handling errors.
+      if (Firebase.failed()) {
+          Serial.print("setting Temperature failed :");
+          Serial.println(Firebase.error()); 
+          delay(500);
+      }
+      //----------------------------------------
+  
+      Serial.println("Sending Time Data Successfully");
+      Serial.println();
       //----------------------------------------Reading Temperature and Humidity
       // Reading temperature or humidity takes about 250 milliseconds!
       // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
@@ -112,17 +165,70 @@ void loop() {
       String strTem = String(t); //--> Convert Temperature values to the String data type.
       }
       //----------------------------------------
+          //----------------------------------------Send Humidity data to the Firebase Realtime Database.
+      Firebase.setString("InternetEngineeringProject/Humidity",strHum); //--> Command or code for sending Humidity data in the form of a String data type to the Firebase Realtime Database.
+      // Conditions for handling errors.
+      if (Firebase.failed()) {
+          Serial.print("setting Humidity failed :");
+          Serial.println(Firebase.error()); 
+          delay(500);
+      }
+      //----------------------------------------
     
+      //----------------------------------------Send Temperature data to the Firebase Realtime Database.
+      Firebase.setString("InternetEngineeringProject/Temperature",strTem); //--> Command or code for sending Temperature data in the form of a String data type to the Firebase Realtime Database.
+      // Conditions for handling errors.
+      if (Firebase.failed()) {
+          Serial.print("setting Temperature failed :");
+          Serial.println(Firebase.error()); 
+          delay(500);
+      }
+      //----------------------------------------
       Serial.println("Sending DHT11 Sensor Data Successfully");
       Serial.println();
 
       //----------------------------------------Sending DHT11 Sensor Data, Time Data and Date Data for Data Log.
       String DateAndTime = currentDate + "_" + currentTime;
-
+ Firebase.setString("DHT11Database/" + DateAndTime + "/_Date",currentDate); //--> Command or code for sending Date data in the form of a String data type to the Firebase Realtime Database.
+      // Conditions for handling errors.
+      if (Firebase.failed()) {
+          Serial.print("setting Date failed :");
+          Serial.println(Firebase.error()); 
+          delay(500);
+      }
+      Firebase.setString("DHT11Database/" + DateAndTime + "/_Time",currentTime); //--> Command or code for sending Time data in the form of a String data type to the Firebase Realtime Database.
+      // Conditions for handling errors.
+      if (Firebase.failed()) {
+          Serial.print("setting Time failed :");
+          Serial.println(Firebase.error()); 
+          delay(500);
+      }
+      Firebase.setString("DHT11Database/" + DateAndTime + "/_Humidity",strHum); //--> Command or code for sending Humidity data in the form of a String data type to the Firebase Realtime Database.
+      // Conditions for handling errors.
+      if (Firebase.failed()) {
+          Serial.print("setting Humidity failed :");
+          Serial.println(Firebase.error()); 
+          delay(500);
+      }
+      Firebase.setString("DHT11Database/" + DateAndTime + "/_Temperature",strTem); //--> Command or code for sending Temperature data in the form of a String data type to the Firebase Realtime Database.
+      // Conditions for handling errors.
+      if (Firebase.failed()) {
+          Serial.print("setting Temperature failed :");
+          Serial.println(Firebase.error()); 
+          delay(500);
+      }
+      //----------------------------------------
       Serial.println("Sending Date, Time and DHT11 Sensor Data Successfully");
       Serial.println();
-
+      //----------------------------------------Retrieve data from the Firebase Realtime Database.
+      String getData = Firebase.getString("InternetEngineeringProject/LightState");
+      // Conditions for handling errors.
+      if (Firebase.failed()) {
+          Serial.print("Getting /LightState failed :");
+          Serial.println(Firebase.error()); 
+          delay(500); 
+      }
+      //----------------------------------------
     
     }   
   }
-}

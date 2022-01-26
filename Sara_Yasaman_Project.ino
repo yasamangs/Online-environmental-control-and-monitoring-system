@@ -229,6 +229,36 @@ void loop() {
           delay(500); 
       }
       //----------------------------------------
+          //----------------------------------------Conditions for turning off or turning on the LED.
+      if (getData == "on") {
+        digitalWrite(LED_D8, HIGH);
+        Serial.println("LED On");
     
+        Firebase.setString("InternetEngineeringProject/LightStateFB","The LED is on");
+        // Conditions for handling errors.
+        if (Firebase.failed()) {
+            Serial.print("setting LightStateFB failed :");
+            Serial.println(Firebase.error()); 
+            delay(500); 
+        }
+        Serial.println("Send Feedback: The LED is on");
+        Serial.println();
+      }
+    
+      if (getData == "off") {
+        digitalWrite(LED_D8, LOW);
+        Serial.println("LED off");
+    
+        Firebase.setString("InternetEngineeringProject/LightStateFB","The LED is off");
+        // Conditions for handling errors.
+        if (Firebase.failed()) {
+            Serial.print("setting LightStateFB failed :");
+            Serial.println(Firebase.error()); 
+            delay(500); 
+        }
+        Serial.println("Send Feedback: The LED is off");
+        Serial.println();
+      }
     }   
   }
+}

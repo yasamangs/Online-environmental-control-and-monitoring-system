@@ -97,7 +97,8 @@ Check out the project in action:
 
 ## Authors
 
-Nima Esmi
-Yasaman Golshan
-Sara Asadi
+- **Nima Esmi**  
+- **Yasaman Golshan**  
+- **Sara Asadi**
+
 

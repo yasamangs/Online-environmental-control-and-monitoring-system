@@ -85,7 +85,7 @@ Environmental monitoring in chicken farms is crucial to improving productivity a
 
 Check out the project in action:
 
-[download the demo video here](assets/Demo.mp4).
+[download the demo video here](assets/Demo.mp4)
 
 
 ## Future Work
@@ -98,6 +98,6 @@ Check out the project in action:
 ## Authors
 
 Nima Esmi
-Yasaman Golashan
+Yasaman Golshan
 Sara Asadi
 
